@@ -64,9 +64,8 @@ public class UploadArticlesPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnUploadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUploadActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnUploadActionPerformed
 
+    }//GEN-LAST:event_btnUploadActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnUpload;
