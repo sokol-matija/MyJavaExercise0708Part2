@@ -13,9 +13,12 @@ import hr.algebra.utilities.MessageUtils;
 import hr.algebra.view.model.ArticleTableModel;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -85,6 +88,16 @@ public class EditArticlesPanel extends javax.swing.JPanel {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
+        tbArticles.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tbArticlesMouseClicked(evt);
+            }
+        });
+        tbArticles.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                tbArticlesKeyReleased(evt);
+            }
+        });
         jScrollPane1.setViewportView(tbArticles);
 
         lbIcon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/assets/no_image.png"))); // NOI18N
@@ -239,7 +252,6 @@ public class EditArticlesPanel extends javax.swing.JPanel {
                             .addComponent(btnAdd)
                             .addComponent(btnUpdate))
                         .addGap(0, 0, Short.MAX_VALUE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btnDelete)
                 .addGap(10, 10, 10)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 327, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -256,7 +268,6 @@ public class EditArticlesPanel extends javax.swing.JPanel {
 
     private Article selectedArticle;
 
-
     private void btnChooseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnChooseActionPerformed
         File file = FileUtils.uploadFile("Images", "jpg", "jpeg", "png");
         if (file == null) {
@@ -271,38 +282,44 @@ public class EditArticlesPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_formComponentShown
 
     private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
-       
+
         if (!formValid()) {
             return;
         }
-        
+
         try {
-            
+
             String localPath = uploadPicture();
-            
+
             Article article = new Article(
-                    tfTitle.getText().trim(), 
-                    tfLink.getText().trim(), 
-                    taDesc.getText().trim(), 
-                    localPath, 
+                    tfTitle.getText().trim(),
+                    tfLink.getText().trim(),
+                    taDesc.getText().trim(),
+                    localPath,
                     LocalDateTime.parse(
                             tfPublishedDate.getText().trim(),
                             Article.DATE_FORMATTER
                     ));
-            
+
             repository.createArticle(article);
-            
+
             model.setArticles(repository.selectArticles());
-            
+
             clearForm();
-                    
-            
-            
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
+
     }//GEN-LAST:event_btnAddActionPerformed
+
+    private void tbArticlesKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tbArticlesKeyReleased
+        showArticle();
+    }//GEN-LAST:event_tbArticlesKeyReleased
+
+    private void tbArticlesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbArticlesMouseClicked
+        showArticle();
+    }//GEN-LAST:event_tbArticlesMouseClicked
 
     private void init() {
         try {
@@ -345,7 +362,7 @@ public class EditArticlesPanel extends javax.swing.JPanel {
         for (int i = 0; i < validationFields.size(); i++) {
             ok &= !validationFields.get(i).getText().trim().isEmpty();
             errorLabels.get(i).setVisible(validationFields.get(i).getText().trim().isEmpty());
-            
+
             if ("Date".equals(validationFields.get(i).getName())) {
                 try {
                     LocalDateTime.parse(
@@ -354,10 +371,10 @@ public class EditArticlesPanel extends javax.swing.JPanel {
                     );
                 } catch (Exception e) {
                     ok = false;
-                     errorLabels.get(i).setVisible(true);
+                    errorLabels.get(i).setVisible(true);
                 }
             }
-            
+
         }
         return ok;
     }
@@ -412,25 +429,54 @@ public class EditArticlesPanel extends javax.swing.JPanel {
         tbArticles.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tbArticles.setRowHeight(25);
         tbArticles.setAutoCreateRowSorter(true);
-        
-        
+
         model = new ArticleTableModel(repository.selectArticles());
         tbArticles.setModel(model);
-        
+
     }
 
     private String uploadPicture() throws IOException {
-        
+
         String path = tfPicturePath.getText();
         String ext = path.substring(path.lastIndexOf("."));
-        
+
         String name = UUID.randomUUID() + ext;
-        
+
         String localPath = DIR + File.separator + name;
-        
+
         FileUtils.copy(path, localPath);
-        
+
         return localPath;
-        
+
+    }
+
+    private void showArticle() {
+        int selectedRow = tbArticles.getSelectedRow();
+        int rowIndex = tbArticles.convertRowIndexToModel(selectedRow);
+
+        try {
+            int id = (int) model.getValueAt(rowIndex, 0);
+            Optional<Article> opt = repository.selectArticle(id);
+            if (opt.isPresent()) {
+                selectedArticle = opt.get();
+                feelCollins(selectedArticle);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void feelCollins(Article article) {
+        tfTitle.setText(article.getTitle());
+        tfLink.setText(article.getLink());
+        taDesc.setText(article.getDescription());
+        tfPublishedDate.setText(article.getPublishedDate().format(Article.DATE_FORMATTER));
+
+        if (article.getPicturePath() != null && Files.exists(Paths.get(article.getPicturePath()))) {
+            tfPicturePath.setText(article.getPicturePath());
+            setIcon(lbIcon, new File(article.getPicturePath()));
+        }
+
     }
 }
