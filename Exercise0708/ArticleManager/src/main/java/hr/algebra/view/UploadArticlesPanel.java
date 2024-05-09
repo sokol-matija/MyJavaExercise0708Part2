@@ -4,7 +4,13 @@
  */
 package hr.algebra.view;
 
+import hr.algebra.dal.Repository;
+import hr.algebra.dal.RepositoryFactory;
 import hr.algebra.model.Article;
+import hr.algebra.parsers.rss.ArticleParser;
+import hr.algebra.utilities.MessageUtils;
+import java.util.List;
+import javax.swing.DefaultListModel;
 
 /**
  *
@@ -12,11 +18,15 @@ import hr.algebra.model.Article;
  */
 public class UploadArticlesPanel extends javax.swing.JPanel {
 
+    private DefaultListModel<Article> model;
+    private Repository repository;
+
     /**
      * Creates new form UploadArticlesPanel
      */
     public UploadArticlesPanel() {
         initComponents();
+        init();
     }
 
     /**
@@ -28,11 +38,9 @@ public class UploadArticlesPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jScrollPane1 = new javax.swing.JScrollPane();
-        javax.swing.JList<Article> lsArticles = new javax.swing.JList<>();
         btnUpload = new javax.swing.JButton();
-
-        jScrollPane1.setViewportView(lsArticles);
+        jScrollPane2 = new javax.swing.JScrollPane();
+        lsArticles = new javax.swing.JList<>();
 
         btnUpload.setText("Upload articles");
         btnUpload.addActionListener(new java.awt.event.ActionListener() {
@@ -41,34 +49,65 @@ public class UploadArticlesPanel extends javax.swing.JPanel {
             }
         });
 
+        jScrollPane2.setViewportView(lsArticles);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 1180, Short.MAX_VALUE)
-                    .addComponent(btnUpload, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane2)
+                    .addComponent(btnUpload, javax.swing.GroupLayout.DEFAULT_SIZE, 1180, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 692, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 686, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addComponent(btnUpload, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(23, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnUploadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUploadActionPerformed
-
+        try {
+            List<Article> articles = ArticleParser.parse();
+            repository.createArticles(articles);
+            loadModel();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }//GEN-LAST:event_btnUploadActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnUpload;
-    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JList<Article> lsArticles;
     // End of variables declaration//GEN-END:variables
+
+    private void init() {
+        try {
+            repository = RepositoryFactory.getInstance();
+            model = new DefaultListModel<>();
+            loadModel();
+        } catch (Exception e) {
+            MessageUtils.showErrorMessage("Critical", "Exiting...");
+            System.exit(1);
+        }
+    }
+
+    private void loadModel() {
+        try {
+            List<Article> articles = repository.selectArticles();
+            articles.forEach(model::addElement);
+            lsArticles.setModel(model);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
