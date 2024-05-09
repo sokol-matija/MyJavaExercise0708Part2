@@ -149,6 +149,11 @@ public class EditArticlesPanel extends javax.swing.JPanel {
         });
 
         btnUpdate.setText("Update");
+        btnUpdate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnUpdateActionPerformed(evt);
+            }
+        });
 
         btnDelete.setText("Delete");
 
@@ -320,6 +325,47 @@ public class EditArticlesPanel extends javax.swing.JPanel {
     private void tbArticlesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbArticlesMouseClicked
         showArticle();
     }//GEN-LAST:event_tbArticlesMouseClicked
+
+    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
+        if (selectedArticle == null) {
+            MessageUtils.showInformationMessage("Info", "Select article");
+            return;
+        }
+
+        if (!formValid()) {
+            return;
+        }
+
+        try {
+
+            if (tfPicturePath.getText().trim().equals(selectedArticle.getPicturePath())) {
+
+                if (selectedArticle.getPicturePath() != null) {
+                    Files.deleteIfExists(Paths.get(selectedArticle.getPicturePath()));
+                }
+
+                String localPath = uploadPicture();
+                selectedArticle.setPicturePath(localPath);
+            }
+
+            selectedArticle.setTitle(tfTitle.getText().trim());
+            selectedArticle.setLink(tfLink.getText().trim());
+            selectedArticle.setDescription(taDesc.getText().trim());
+            selectedArticle.setPicturePath(localPath);
+            selectedArticle.setPublishedDate(LocalDateTime.parse(
+                    tfPublishedDate.getText().trim(),
+                    Article.DATE_FORMATTER));
+
+            repository.updateArticle(selectedArticle.getId(), selectedArticle);
+
+            model.setArticles(repository.selectArticles());
+
+            clearForm();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }//GEN-LAST:event_btnUpdateActionPerformed
 
     private void init() {
         try {
