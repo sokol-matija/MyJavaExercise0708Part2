@@ -156,6 +156,11 @@ public class EditArticlesPanel extends javax.swing.JPanel {
         });
 
         btnDelete.setText("Delete");
+        btnDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -365,6 +370,29 @@ public class EditArticlesPanel extends javax.swing.JPanel {
             e.printStackTrace();
         }
     }//GEN-LAST:event_btnUpdateActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        if (selectedArticle == null) {
+            MessageUtils.showInformationMessage("Info", "Select article");
+            return;
+        }
+
+        try {
+
+            if (selectedArticle.getPicturePath() != null) {
+                Files.deleteIfExists(Paths.get(selectedArticle.getPicturePath()));
+            }
+
+            repository.deleteArticle(selectedArticle.getId());
+
+            model.setArticles(repository.selectArticles());
+
+            clearForm();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }//GEN-LAST:event_btnDeleteActionPerformed
 
     private void init() {
         try {
