@@ -3,6 +3,8 @@ package hr.algebra.parsers.rss;
 import hr.algebra.factory.ParserFactory;
 import hr.algebra.factory.UrlConnectionFactory;
 import hr.algebra.model.Article;
+import hr.algebra.utilities.FileUtils;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -11,13 +13,39 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
 public class ArticleParser {
+
+    private static final String RSS_URL = "https://slobodnadalmacija.hr/feed";
+    private static final String ATTRIBUTE_URL = "url";
+    private static final String EXT = ".jpg";
+    private static final String DIR = "assets";
+
+    private static void upload(Article article, String src) {
+        try {
+            String ext = src.substring(src.lastIndexOf("."));
+            if (ext.length() > 5) {
+                ext = EXT;
+            }
+            String name = UUID.randomUUID() + ext;
+            String dest = DIR + File.separator + name;
+
+            FileUtils.copyFromUrl(src, dest);
+
+            article.setPicturePath(dest);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     private enum TagType {
         ITEM("item"),
@@ -43,11 +71,6 @@ public class ArticleParser {
         }
 
     }
-
-    private static final String RSS_URL = "https://slobodnadalmacija.hr/feed";
-    private static final String ATTRIBUTE_URL = "url";
-    private static final String EXT = ".jpg";
-    private static final String DIR = "assets";
 
     public static List<Article> parse() throws IOException, XMLStreamException {
 
@@ -95,6 +118,12 @@ public class ArticleParser {
                                     }
                                     break;
                                 case ENCLOSURE:
+                                    if (startElement != null) {
+                                        Attribute att = startElement.getAttributeByName(new QName(ATTRIBUTE_URL));
+                                        if (att != null) {
+                                            upload(article, att.getValue());
+                                        }
+                                    }
                                     break;
                                 case PUB_DATE:
                                     if (!data.isBlank()) {

@@ -5,8 +5,11 @@
  */
 package hr.algebra.utilities;
 
+import hr.algebra.factory.UrlConnectionFactory;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -24,7 +27,7 @@ public class FileUtils {
 
         createDirHiearchy(destination);
         Files.copy(Paths.get(source), Paths.get(destination));
-        
+
     }
 
     private static void createDirHiearchy(String destination) throws IOException {
@@ -36,11 +39,20 @@ public class FileUtils {
         }
     }
 
-    private FileUtils() {}
-    
+    public static void copyFromUrl(String src, String dest) throws IOException {
+        createDirHiearchy(dest);
+        HttpURLConnection con = UrlConnectionFactory.getHttpUrlConnection(src);
+        try (InputStream is = con.getInputStream()) {
+            Files.copy(is, Paths.get(dest));
+        }
+    }
+
+    private FileUtils() {
+    }
+
     private static final String UPLOAD = "Upload";
 
-    public static File uploadFile(String description, String...extensions) {
+    public static File uploadFile(String description, String... extensions) {
         JFileChooser chooser = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
         chooser.setFileFilter(new FileNameExtensionFilter(description, extensions));
         chooser.setDialogTitle(UPLOAD);
@@ -50,7 +62,7 @@ public class FileUtils {
         if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
             File selectedFile = chooser.getSelectedFile();
             String extension = selectedFile.getName().substring(selectedFile.getName().lastIndexOf(".") + 1);
-            return selectedFile.exists() && Arrays.asList(extensions).contains(extension.toLowerCase()) ? selectedFile : null;            
+            return selectedFile.exists() && Arrays.asList(extensions).contains(extension.toLowerCase()) ? selectedFile : null;
         }
         return null;
     }
