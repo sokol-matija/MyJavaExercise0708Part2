@@ -351,7 +351,6 @@ public class EditArticlesPanel extends javax.swing.JPanel {
             selectedArticle.setTitle(tfTitle.getText().trim());
             selectedArticle.setLink(tfLink.getText().trim());
             selectedArticle.setDescription(taDesc.getText().trim());
-            selectedArticle.setPicturePath(localPath);
             selectedArticle.setPublishedDate(LocalDateTime.parse(
                     tfPublishedDate.getText().trim(),
                     Article.DATE_FORMATTER));
