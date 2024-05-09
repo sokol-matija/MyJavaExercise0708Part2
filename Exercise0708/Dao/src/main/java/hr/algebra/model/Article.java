@@ -12,9 +12,9 @@ import java.time.format.DateTimeFormatter;
  * @author lecturerf6
  */
 public final class Article {
-    
-    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME; 
-    
+
+    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
     private int id;
     private String title;
     private String link;
@@ -34,8 +34,9 @@ public final class Article {
         setPicturePath(picturePath);
         setPublishedDate(publishedDate);
     }
-    
-    
+
+    public Article() {
+    }
 
     public int getId() {
         return id;
@@ -89,7 +90,5 @@ public final class Article {
     public String toString() {
         return id + " - " + title;
     }
-    
-    
-    
+
 }
